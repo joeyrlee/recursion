@@ -5,26 +5,19 @@
 
 // But instead we're going to implement it from scratch:
 var getElementsByClassName = function(className){
-  //document.body, element.childNodes, element.classList
-   //.hasChildNodes, node.classList.contains(className)
-  
-  var elements = [];
-  var domRecursion = function(element){
-  	if(element.classList.contains(className)){
-  	  elements.push(element);
+  var acc = [];
+  var searchNodes = function(node){
+  	if(node.classList.contains(className)){
+  	  acc.push(node);
   	}
-    for(var i = 0; i < element.childNodes.length; i++){
-   	  
-   	  if(element.childNode[i].classList.contains(className)){
-   	  	elements.push()
-   	  }
-      //check each childNode for the className using element.classList
-      //and then delve into each childNode for the className using element.classList
-      //and each childNode's childNode using element.classList
+    for(var i = 0; i < node.childNodes.length; i++){
+      //only initiates function calls on element nodetypes
+      if(node.childNodes[i].classList !== undefined){
+  	    searchNodes(node.childNodes[i]);
+  	  }
 	}
   }
+  searchNodes(document.body);
 
-  domRecursion(document.body);
-
-  return elements.length >= 1 || null;
+  return acc;
 };
