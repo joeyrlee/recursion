@@ -3,62 +3,37 @@
 
 // but you don't so you're going to write it from scratch:
 
-//copies arrays/objects so that originals aren't mutated in recursive stringification
-var copyObject = function(obj){
-  if(Array.isArray(obj)){
-    return Array.prototype.slice.call(obj, 0);
-  } else if(typeof obj === 'object'){
-    var objCopy = {};
-    for(var key in obj){
-      objCopy[key] = obj[key];
-    }
-    return objCopy;
-  }
-}
-
-var stringifyJSON = function(obj){
-  //Covers everything but arrays/objects
-  if(typeof obj === 'boolean'){
+var stringifyJSON = function(obj) {
+  // stringify null
+  if (obj === null) {
+    return `${null}`;
+  //stringify strings
+  } else if (typeof obj === 'string') {
+    return `"${obj}"`;
+  //stringify numbers, booleans, undefined, and functions
+  } else if (typeof obj === 'number' || typeof obj === 'boolean' || typeof obj === undefined || typeof obj === 'function') {
     return `${obj}`;
-  //strict equals evaluation since typeof null doesn't work
-  } else if(obj === null){
-    return `${obj}`;
-  } else if(typeof obj === 'number'){
-    return `${obj}`;
-  } else if(typeof obj === 'string'){
-    return '"' + obj + '"';
-  } else if(typeof obj === 'undefined'){
-    return '';
-  } else if(typeof obj === 'function'){
-    return '';
-  }
+  //stringify arrays
+  } else if (Array.isArray(obj)) {
+    var stringifiedArr = '';
+    _.each(obj, element => {
+      //concatenate the stringified array contents into a comma-delimited string
+      stringifiedArr += stringifyJSON(element) + ',';
+    })
+    //return the stringified array - sans the trailing comma - in stringified brackets
+    return `[${stringifiedArr.slice(0, -1)}]`;
 
-  var stringifyArray = function(arr){
-    if(arr.length === 0){
-      return '';
-    } else {
-      return `${stringifyJSON(arr.shift())},` + stringifyArray(arr);
-    }
-  }
-
-  var copy = copyObject(obj);
-  if(Array.isArray(copy)){
-    return '[' + stringifyArray(copy).slice(0, -1) + ']';
-  } else {
-    var result = (function stringifyObj(){
-      if(Object.keys(copy).length === 0){
-        return '';
-      } else {
-        var key = Object.keys(copy)[0];
-        var value = Object.values(copy)[0];
-        delete copy[key];
-        if (key === 'functions' || key === 'undefined'){
-          return '' + stringifyObj();
-        } else {
-          return `${stringifyJSON(key)}:${stringifyJSON(value)},` + stringifyObj();
-        }
+  //stringify objects
+  } else if (typeof obj === 'object') {
+    var stringifiedObj = '';
+    _.each(obj, (value, key) => {
+      //only if key and value are truthy (or the value is false or null) and the value is not a function
+      if ((!!key && !!value || (value === false || value === null)) && typeof value !== 'function') {
+        //concatenate the stringified object key-value pairs into a comma-delimited string
+        stringifiedObj += `"${key}":${stringifyJSON(value)}` + ',';
       }
-    }());
-    return '{' + result.slice(0, -1) + '}';
+    })
+    //return the stringified object - sans the trailing comma - in stringified curly brackets
+    return `{${stringifiedObj.slice(0, -1)}}`;
   }
-}
+};
